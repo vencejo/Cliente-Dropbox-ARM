@@ -45,8 +45,9 @@ se guarda en forma de archivo json con estructura recursiva del tipo siguiente
          
 ### Inspiraciones y agradecimientos:
 
-[Comparacion de diccionaros][1]
-[Cliente Dropbox grafico][2]
+A Hughdbrown y su elegante [Comparacion de diccionaros][1]
+
+y a Vaslabs por su [Cliente Dropbox grafico][2]
 
 [1]: https://github.com/hughdbrown/dictdiffer
 [2]: http://sourceforge.net/projects/raspybox
