@@ -43,6 +43,14 @@ se guarda en forma de archivo json con estructura recursiva del tipo siguiente
 			 'tipo': 'directorio'} 
 ~~~
          
+### Inspiraciones y agradecimientos:
+
+[Comparacion de diccionaros][1]
+[Cliente Dropbox grafico][2]
+
+[1]: https://github.com/hughdbrown/dictdiffer
+[2]: http://sourceforge.net/projects/raspybox
+
 ### TODO:
 
 * POO
