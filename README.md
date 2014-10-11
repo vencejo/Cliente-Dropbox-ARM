@@ -33,13 +33,15 @@ actulizando a su vez la cache local
 La informacion sobre el arbol de carpetas y archivos , tambien denominado cache, 
 se guarda en forma de archivo json con estructura recursiva del tipo siguiente
 
-d = {'ruta':'/',
-         'archivos': [{'ruta':'/home',
-                       'archivos':[],
-                       'tipo':'directorio',
-                       'tiempo':30000}],
-         'tiempo': 10000000,
-         'tipo': 'directorio'}
+~~~
+		d = {'ruta':'/',
+			 'archivos': [{'ruta':'/home',
+						   'archivos':[],
+						   'tipo':'directorio',
+						   'tiempo':30000}],
+			 'tiempo': 10000000,
+			 'tipo': 'directorio'} 
+~~~
          
 ### TODO:
 
