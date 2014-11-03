@@ -74,7 +74,7 @@ os.chdir(RUTA_BASE_LOCAL)
 rutaAraiz = os.getcwd()
 
 def preparaRuta(ruta, donde = 'local'):
-	""" Dada una ruta  devuelve la ruta que ha de tener en la ambiente gemelo.
+	""" Dada una ruta  devuelve la ruta que ha de tener en su ambiente gemelo.
 		Si la ruta es local , devuelve su contrapartida en dropbox
 		y si la ruta es de dropbox (donde='nube') devuelve la ruta local del elemento"""
 	if donde == 'local':
@@ -99,7 +99,7 @@ def cargaInfoArchivos(rutaArchivoDeRutas):
     return info
 
 def vigilaArbol(donde = 'local'):
-	""" Se encarga de ir vigilando el arbol remoto o local
+	""" Se encarga de ir vigilando el arbol de carpetas , remoto o local
 	y si hay cambios actualiza su arbol gemelo, el local o el remoto """
 	if donde == 'local':
 		datosOriginalesGuardados = COPIA_LOCAL_INFO_LOCAL
@@ -224,8 +224,8 @@ def creaDirectorio(ruta, donde='local'):
 	        
                       
 def infoArchivosyCarpetas(ruta,donde = 'local', tipo = 'directorio' , tiempo = 0):
-	""" Guarda la informacion del arbol de archivos y carpetas en un diccionario
-	subceptible de ser pasado a json
+	""" Explora el arbol de archivos y carpetas y devuelve la informacion del mismo 
+	en un diccionario subceptible de ser pasado a json
 	El diccionario devuelto tiene la forma recursiva siguiente:
 	
 	d = {'ruta':'/',
@@ -257,38 +257,31 @@ def infoArchivosyCarpetas(ruta,donde = 'local', tipo = 'directorio' , tiempo = 0
 							 
 		return d
 
-
-def subidaInicial(d):
-    """ Realiza la subida inicial de archivos y directorios a la web tomando
-    como argumento el diccionario que guarda la informacion de los archivos """
-    if d == [] or d == None:
-        return
-    ruta = d['ruta']
- 
-    if d['tipo'] == 'directorio':     
-        creaDirectorio(ruta, donde='nube') 
-        for a in d.get('archivos'):
-            subidaInicial(a)
-    else:
-        mueveArchivoHacia(ruta, donde='nube')
-
-def descargaInicial(d,rutaLocal):
-	
+		
+		
+def mueveTodoHacia(d, donde='local'):
+	""" Mueve todos los archivos y carpetas registrados en d hacia donde marque
+	el argumento donde. Si donde='local' los descarga de Dropbox hacia el local
+	y si donde='nube' sube los archivos locales a la nube """
 	try:
-		
 		if d == [] or d == None:
-			return
-		rutaRemota = d['ruta']
-		rutaLocal = preparaRuta(rutaRemota, donde = 'local')
+			return 
 		
-		if d['tipo'] == 'directorio':  
-			if  not os.path.exists(rutaLocal):
-				os.mkdir(rutaLocal)
-			for a in d.get('archivos'):
-				descargaInicial(a, rutaLocal)
+		ruta = d['ruta']
+			
+		if d['tipo'] == 'directorio':
+			if donde == 'local':
+				rutaLocal = preparaRuta(ruta, donde = 'local')
+				if  not os.path.exists(rutaLocal):
+					creaDirectorio(ruta, donde='local')
+			else:
+				creaDirectorio(ruta, donde='nube') 
+				
+			for archivo in d.get('archivos'):
+				mueveTodoHacia(archivo , donde)
 		else:
-			mueveArchivoHacia(rutaRemota, donde='local')
-		
+			mueveArchivoHacia(ruta, donde)
+				
 	except Exception, e:
 		print e
 		
@@ -325,7 +318,7 @@ if __name__ == "__main__":
 		dic_remoto = infoArchivosyCarpetas(RUTA_BASE_REMOTA,donde = 'nube')
 		guardaInfoArchivos(dic_remoto, COPIA_LOCAL_INFO_LOCAL)
 		guardaInfoArchivos(dic_remoto, COPIA_LOCAL_INFO_REMOTA)
-		descargaInicial(dic_remoto,RUTA_BASE_LOCAL)
+		mueveTodoHacia(dic_remoto, donde='local')
 	
 	### Paso 1, 2 y 3: Se hacen cada vez que se arranca la Raspberry.
 	### Escaneo de la estructura de archivos remota y comparacion con la
@@ -351,6 +344,10 @@ if __name__ == "__main__":
 	#4.2- Por otra parte el programa tambien vigila los cambios en una carpeta remota
 	#y si se produce algun cambio procede a actualizar la copia local de esta carpeta,
 	vigilancia = Vigila(5)
+	
+	## Codigo para mover todo el contenido de una vez al dropbox
+	#dic_local = infoArchivosyCarpetas(RUTA_BASE_LOCAL,donde = 'local')
+	#mueveTodoHacia(dic_local, donde='nube')
 	
 		
 
