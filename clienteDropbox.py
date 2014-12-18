@@ -58,17 +58,26 @@ import json
 from dictDiff import DictDiff
 from threading import Timer
 import datetime
+from ConfigParser import SafeConfigParser
+
+parser = SafeConfigParser()
+parser.read('datosDeTrabajo.ini')
+
+ruta_base_local = parser.get('rutas', 'RUTA_BASE_LOCAL')
+ruta_base_remota = parser.get('rutas', 'RUTA_BASE_REMOTA')
+copia_local_info_local = parser.get('rutas', 'COPIA_LOCAL_INFO_LOCAL')
+copia_local_info_remota = parser.get('rutas', 'COPIA_LOCAL_INFO_REMOTA')
 
 class ClienteDropbox():
 	
-	def __init__(self, RUTA_BASE_LOCAL= "/home/pi/Desktop/ClienteDropbox/Nube",
-						RUTA_BASE_REMOTA = "/Nube" ):
+	def __init__(self, RUTA_BASE_LOCAL= ruta_base_local,
+						RUTA_BASE_REMOTA = ruta_base_remota ):
 							
 		self.RUTA_BASE_LOCAL = RUTA_BASE_LOCAL 
 		self.RUTA_BASE_REMOTA = RUTA_BASE_REMOTA
 
-		self.COPIA_LOCAL_INFO_LOCAL = "/home/pi/Desktop/ClienteDropbox/Programa/copiaLocalInfoLocal.json"
-		self.COPIA_LOCAL_INFO_REMOTA = "/home/pi/Desktop/ClienteDropbox/Programa/copiaLocalInfoRemota.json"
+		self.COPIA_LOCAL_INFO_LOCAL = copia_local_info_local
+		self.COPIA_LOCAL_INFO_REMOTA = copia_local_info_remota
 
 		#Conexion a Dropbox
 		self.dropbox = myDropbox.connect()

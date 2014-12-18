@@ -7,10 +7,14 @@ import sys
 from dropbox import client, rest, session
 import time
 import datetime
+from ConfigParser import SafeConfigParser
 
-APP_KEY = 'o05x3rxfamtxc74'
-APP_SECRET = 'www8ibf6jja0z6q'
-ACCESS_TYPE = 'dropbox'  # should be 'dropbox' or 'app_folder' as configured for your app
+parser = SafeConfigParser()
+parser.read('datosDeTrabajo.ini')
+
+APP_KEY = parser.get('conexion', 'APP_KEY')
+APP_SECRET = parser.get('conexion', 'APP_SECRET')
+ACCESS_TYPE = parser.get('conexion', 'ACCESS_TYPE')
 
 class Dropbox():
     def __init__(self, app_key, app_secret):
