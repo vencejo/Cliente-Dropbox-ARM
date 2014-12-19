@@ -54,6 +54,6 @@ docs/_build/
 target/
 
 # Archivos de configuracion
-#*.ini
+*.ini
 *.json
 *.txt

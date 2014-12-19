@@ -66,15 +66,21 @@ class Dropbox():
 class StoredSession(session.DropboxSession):
     """a wrapper around DropboxSession that stores a token to a file on disk"""
     TOKEN_FILE = "token_store.txt"
-
+    
+    def loadAccessToken(self):
+		stored_creds = open(self.TOKEN_FILE).read()
+		self.set_token(*stored_creds.split('|'))
+		print "[loaded access token]"
+            
     def load_creds(self):
+		""" Intenta cargar el Token de acceso de un archivo de texto, 
+		y si no lo encuentra inicia el proceso de solicitud a Dropbox """ 
         try:
-            stored_creds = open(self.TOKEN_FILE).read()
-            self.set_token(*stored_creds.split('|'))
-            print "[loaded access token]"
+            self.loadAccessToken()
         except IOError:
-            pass # don't worry if it's not there
-
+            self.link() 
+            self.loadAccessToken()
+            
     def write_creds(self, token):
         f = open(self.TOKEN_FILE, 'w')
         f.write("|".join([token.key, token.secret]))
@@ -99,12 +105,14 @@ class StoredSession(session.DropboxSession):
         
         
 def connect():
+	
     if APP_KEY == '' or APP_SECRET == '':
         exit("You need to set your APP_KEY and APP_SECRET!")
     d = Dropbox(APP_KEY, APP_SECRET)
     return d
     
 if __name__ == '__main__':
-    d = connect()
-    print d.ls('/')
-    d.get("/Comenzar.pdf", "/home/pi/Desktop/ClienteDropbox/Nube/Carpeta2/Nuevo2/Comenzar.pdf")
+		
+	d = connect()
+	print d.ls('/')
+    
