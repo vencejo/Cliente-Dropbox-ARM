@@ -8,7 +8,32 @@ Ciente Dropbox para Raspberry PI
 Mantiene sincronizada una carpeta local de la Raspberry con una carpeta remota
 en dropbox.
 
+### Instalacion:
 
+1. Evidentemente tienes que crearte una cuenta Dropbox
+
+2. Luego tienes que informar a Dropbox de que una de tus aplicaciones
+va a acceder a esta cuenta para lo que tienes que ir a 
+[la pagina de apps de Dropbox][https://www.dropbox.com/developers/apps] 
+y pinchar en 'create app' , tendras que elegir si quieres que 
+tu aplicacion tenga un acceso completo  a todo tu Dropbox o solo a una carpeta 
+y has de marcar el 'access type' como 'Dropbox'
+
+3. Con la 'app_key' y la 'app_secret' que obtienes en el paso anterior tienes que
+rellenar los campos correspondientes en el archivo 'datosDeTrabajo.ini'
+
+4. Tambien debes  poner en 'datosDeTrabajo.ini' las rutas de las carpetas
+locales y remotas que vas a sincronizar con Dropbox
+
+5. Tras esto ya puedes ejecutar el programa, que se pondra en contacto con 
+Dropbox para que este autorice a la maquina con las que estas trabajanco a 
+acceder a tu aplicacion. Para ello hay que copiar en un navegador la direccion
+que te dara el programa en la terminal, una vez visitada esta direccion, Dropbox ya esta al tanto
+de que esta maquina esta asociada con tu app y puedes darle al intro en el terminal
+y el programa se descargara el 'AccessToken' que guardara en un archivo de texto 
+y que servira como llave para futuros accesos a la aplicacion sin necesidad de 
+repetir estos cinco pasos
+ 
 ### Modo de funcionamiento:
 
 1. Al encender la Raspberry hace un escaneado de la estructura de carpetas remota.
@@ -54,7 +79,6 @@ y a Vaslabs por su [Cliente Dropbox grafico][2]
 
 ### TODO:
 
-* POO
 * Cuando se borran muchos archivos locales a la vez solo se borran unos pocos 
 en Dropbox
 * Cuando se suben muchos archivos locales al Dropbox falta informacion mostrada
