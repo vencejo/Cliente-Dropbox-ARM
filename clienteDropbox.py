@@ -39,14 +39,7 @@ d = {'ruta':'/',
          'tiempo': 10000000,
          'tipo': 'directorio'}
          
-## TODO:
-0- Cuando se ha borrado un elemento en dropbox estando la Rasp apagada, al encenderla
-	si descarga los nuevos elementos, pero no borra del local el elemento borrado en dropbox
 
-1- Hay problemas cuando creo una carpeta en remoto con tildes en su nombre
-2- Implementar un limitador de la cantidad de subidas y bajadas
-3- Gestion de errores
-4- POO
 
 """
 
