@@ -75,11 +75,11 @@ class StoredSession(session.DropboxSession):
     def load_creds(self):
 		""" Intenta cargar el Token de acceso de un archivo de texto, 
 		y si no lo encuentra inicia el proceso de solicitud a Dropbox """ 
-        try:
-            self.loadAccessToken()
-        except IOError:
-            self.link() 
-            self.loadAccessToken()
+		try:
+			self.loadAccessToken()
+		except IOError:
+			self.link() 
+			self.loadAccessToken()
             
     def write_creds(self, token):
         f = open(self.TOKEN_FILE, 'w')

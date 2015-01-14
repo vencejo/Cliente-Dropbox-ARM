@@ -10,6 +10,9 @@ en dropbox.
 
 ### Instalacion:
 
+0. Has de instalar el modulo Dropbox SDK para Python con la sentencia
+	'sudo pip install dropbox'
+	
 1. Evidentemente tienes que crearte una cuenta Dropbox
 
 2. Luego tienes que informar a Dropbox de que una de tus aplicaciones
