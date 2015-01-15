@@ -96,5 +96,4 @@ al encenderla si descarga los nuevos elementos,
 pero no borra del local el elemento borrado en dropbox
 * Hay problemas cuando creo una carpeta en remoto con tildes en su nombre
 * Implementar un limitador de la cantidad de subidas y bajadas
-* Implementar un registro de logs
 * Gestion de errores

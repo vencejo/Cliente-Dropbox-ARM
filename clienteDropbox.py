@@ -52,6 +52,10 @@ from dictDiff import DictDiff
 from threading import Timer
 import datetime
 from ConfigParser import SafeConfigParser
+import logging
+
+logging.basicConfig(filename='registro.log',format='%(asctime)s %(message)s', \
+						 level=logging.INFO)
 
 parser = SafeConfigParser()
 parser.read('datosDeTrabajo.ini')
@@ -79,9 +83,8 @@ class ClienteDropbox():
 		os.chdir(self.RUTA_BASE_LOCAL)
 
 	def preparaRuta(self, ruta, donde = 'local'):
-		""" Dada una ruta  devuelve la ruta que ha de tener en su ambiente gemelo.
-			Si la ruta es local , devuelve su contrapartida en dropbox
-			y si la ruta es de dropbox (donde='nube') devuelve la ruta local del elemento"""
+		""" Prepara una ruta para que represente un elemento en local 
+		o en dropbox (donde='nube') """
 		if donde == 'local':
 			rutaLocal = self.RUTA_BASE_LOCAL + ruta
 			return rutaLocal
@@ -126,13 +129,13 @@ class ClienteDropbox():
 			self.actualiza(df, elOtroDirectorio)
 			dic = self.infoArchivosyCarpetas(laOtraRutaBase, elOtroDirectorio  )
 			self.guardaInfoArchivos(dic, datosNuevosAguardar)
+			self.guardaInfoArchivos(datosNuevos, datosOriginalesGuardados)
 			self.imprimeInfo(df)
-					
+							
 		# Para facilitar el trabajo al recolector de basura
 		# borro objetos innecesarios que podrian llenar la memoria
 		del df
-		self.guardaInfoArchivos(datosNuevos, datosOriginalesGuardados)
-
+		
 	def imprimeInfo(self,df):
 		""" Imprime la info del df """
 		print ""
@@ -142,6 +145,9 @@ class ClienteDropbox():
 		print "cambiados: " + str(df.cambiados())
 		print  "********************************"
 		print ""
+		
+		logging.info('\nborrados: {0}  \nnuevos: {1}  \ncambiados:{2}\n'.format( \
+						str(df.borrados()),str(df.nuevos()),str(df.cambiados())))
 		
 	def actualiza(self, df, donde = 'local'):
 		""" Actualiza el contenido del directorio local o remoto segun los valores del 
@@ -176,12 +182,14 @@ class ClienteDropbox():
 			try:
 				rutaLocal = self.preparaRuta(ruta, donde = 'local')
 				self.dropbox.get(self.RUTA_BASE_REMOTA + ruta,rutaLocal)
+				logging.info('\nCreado archivo en {}\n'.format(rutaLocal))
 			except Exception, e:
 				print e, rutaRemota
 						
 		elif donde == 'nube':
 			rutaRemota = self.preparaRuta(ruta, donde = 'nube')
 			self.dropbox.put(self.RUTA_BASE_LOCAL + ruta,rutaRemota)
+			logging.info('\nCreado archivo en {}\n'.format(rutaRemota))
 			
 		else:
 			print "Perdone, orden de movimiento del archivo no entendida"		
@@ -199,12 +207,14 @@ class ClienteDropbox():
 					os.rmdir(rutaLocal)
 				else:
 					os.remove(rutaLocal)
+				logging.info('\nBorrado archivo en {}\n'.format(rutaLocal))
 			except Exception, e:
 				print e , rutaLocal
 				
 		elif donde == 'nube':
 			rutaRemota = self.preparaRuta(ruta, donde = 'nube')
 			self.dropbox.rm(rutaRemota)
+			logging.info('\nBorrado archivo en {}\n'.format(rutaRemota))
 			
 		else:
 			print "Perdone, orden de borrado del archivo no entendida"
@@ -217,12 +227,14 @@ class ClienteDropbox():
 			rutaLocal = self.preparaRuta(ruta, donde = 'local')
 			try:
 				os.mkdir(rutaLocal)
+				logging.info('\nCreado directorio en {}\n'.format(rutaLocal))
 			except Exception, e:
 				print e	
 				
 		elif donde == 'nube':
 			rutaRemota = self.preparaRuta(ruta, donde = 'nube')
 			self.dropbox.mkdir(rutaRemota)
+			logging.info('\nCreado directorio en {}\n'.format(rutaRemota))
 			
 		else:
 			print "Perdone, orden de creacion del directorio no entendida"
@@ -319,23 +331,26 @@ class Vigila:
 if __name__ == "__main__":
 	
 	clienteDropbox = ClienteDropbox()
-	### Paso 0: Lo siguiente solo en la primera vez que se ejecute el programa en la Rasp
+	### Paso 0: Lo siguiente solo en la primera vez que se ejecute el programa 
 	if  not os.path.exists(clienteDropbox.COPIA_LOCAL_INFO_LOCAL) or not os.path.exists(clienteDropbox.COPIA_LOCAL_INFO_REMOTA): 
 		print "Primera ejecucion del cliente ... descargando informacion remota "
+		logging.info("\nPrimera ejecucion del cliente ... descargando informacion remota \n")
 		dic_remoto = clienteDropbox.infoArchivosyCarpetas(clienteDropbox.RUTA_BASE_REMOTA,donde = 'nube')
 		clienteDropbox.guardaInfoArchivos(dic_remoto, clienteDropbox.COPIA_LOCAL_INFO_LOCAL)
 		clienteDropbox.guardaInfoArchivos(dic_remoto, clienteDropbox.COPIA_LOCAL_INFO_REMOTA)
 		clienteDropbox.mueveTodoHacia(dic_remoto, donde='local')
 	
-	### Paso 1, 2 y 3: Se hacen cada vez que se arranca la Raspberry.
+	### Paso 1, 2 y 3: Se hacen cada vez que se arranca la maquina.
 	### Escaneo de la estructura de archivos remota y comparacion con la
 	### 	copia de la misma guardada en local, si son distintas , descargar los nuevos archivos
 	print "Escaneando directorio remoto buscando nuevos elementos ..."
-	dic_remoto =clienteDropbox. infoArchivosyCarpetas(clienteDropbox.RUTA_BASE_REMOTA, donde = 'nube')
+	logging.info("\nArrancando cliente ...Escaneando directorio remoto buscando nuevos elementos ... \n")
+	dic_remoto = clienteDropbox. infoArchivosyCarpetas(clienteDropbox.RUTA_BASE_REMOTA, donde = 'nube')
 	dic_CopiaLocal_remoto = clienteDropbox.cargaInfoArchivos(clienteDropbox.COPIA_LOCAL_INFO_REMOTA)
 	
 	df = DictDiff( dic_remoto, dic_CopiaLocal_remoto)
 	clienteDropbox.actualiza(df, donde='local')
+	clienteDropbox.imprimeInfo(df)
 	del df	# Para facilitar el trabajo al recolector de basura
 
 	# Despues de actualizar el sistema local , volvemos a mirar su estrutura y a guardarla
