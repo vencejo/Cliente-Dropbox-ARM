@@ -1,11 +1,11 @@
-Cliente-Dropbox-para-Raspberry-Pi
-=================================
+Cliente-Dropbox-ARM
+===================
 
-Ciente Dropbox para Raspberry PI
+Ciente Dropbox para arquitecturas ARM (Raspberry Pi, CubieBoards, etc ...)
 
 ### Resumen:
 
-Mantiene sincronizada una carpeta local de la Raspberry con una carpeta remota
+Mantiene sincronizada una carpeta local del ARM  con una carpeta remota
 en dropbox.
 
 ### Instalacion:
@@ -17,7 +17,7 @@ en dropbox.
 
 2. Luego tienes que informar a Dropbox de que una de tus aplicaciones
 va a acceder a esta cuenta para lo que tienes que ir a 
-[la pagina de apps de Dropbox][https://www.dropbox.com/developers/apps] 
+la pagina de apps de Dropbox [https://www.dropbox.com/developers/apps] 
 y pinchar en 'create app' , tendras que elegir si quieres que 
 tu aplicacion tenga un acceso completo  a todo tu Dropbox o solo a una carpeta 
 y has de marcar el 'access type' como 'Dropbox'
@@ -79,6 +79,11 @@ y a Vaslabs por su [Cliente Dropbox grafico][2]
 
 [1]: https://github.com/hughdbrown/dictdiffer
 [2]: http://sourceforge.net/projects/raspybox
+
+### Probado en ...
+
+* Raspberry Pi (Debian)
+* CubieBoard  (Debian)
 
 ### TODO:
 
