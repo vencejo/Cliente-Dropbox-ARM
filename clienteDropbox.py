@@ -49,8 +49,6 @@ import time
 import myDropbox
 import json
 from dictDiff import DictDiff
-from threading import Timer
-import datetime
 from ConfigParser import SafeConfigParser
 import logging
 
@@ -122,6 +120,11 @@ class ClienteDropbox():
 			
 		datosOriginales = self.cargaInfoArchivos(datosOriginalesGuardados) 
 		datosNuevos = self.infoArchivosyCarpetas(rutaBase,donde) 
+		print ""
+		print datosNuevos
+		print ""
+		print datosOriginales
+		print ""
 		df = DictDiff(datosNuevos, datosOriginales) 
 		
 		if len(df.borrados()) > 0 or len(df.nuevos()) > 0 or len(df.cambiados()) > 0 :
@@ -301,33 +304,7 @@ class ClienteDropbox():
 					
 		except Exception, e:
 			print e
-		
-class Vigila:
-	"""Paso 4- Se entra en un ciclo de doble vigilancia:
-		4.1- Por una parte el programa vigila los cambios de las carpetas locales y si se produce
-			alguno procede a actualizar su cache local y a subir el archivo/carpeta
-		4.2- Por otra parte el programa tambien vigila los cambios en una carpeta remota
-			y si se produce algun cambio procede a actualizar la copia local de esta carpeta"""
-	def __init__(self,clienteDropbox, cadaCuantoTiempo):
-		self.clienteDropbox = clienteDropbox
-		self.cadaCuantoTiempo = cadaCuantoTiempo # Son segundos
-		self.last_updated = None
-		self.update()
-		
-	def update(self):
-		print "Vigilando directorios locales ..."
-		clienteDropbox.vigilaArbol(donde = 'local')
-		print "Vigilando directorios remotos ..."
-		clienteDropbox.vigilaArbol(donde = 'nube')
-		self.last_updated = datetime.datetime.now()
-		self.schedule()
-		
-	def schedule(self):
-		self.timer = Timer(self.cadaCuantoTiempo, self.update)
-		#self.timer.setDaemon(True)
-		self.timer.start()
-		
-                          
+
 if __name__ == "__main__":
 	
 	clienteDropbox = ClienteDropbox()
@@ -365,7 +342,13 @@ if __name__ == "__main__":
 	#alguno procede a actualizar su cache local y a subir el archivo/carpeta
 	#4.2- Por otra parte el programa tambien vigila los cambios en una carpeta remota
 	#y si se produce algun cambio procede a actualizar la copia local de esta carpeta,
-	vigilancia = Vigila(clienteDropbox,5)
+	
+	while True:
+		print "Vigilando directorios locales ..."
+		clienteDropbox.vigilaArbol(donde = 'local')
+		print "Vigilando directorios remotos ..."
+		clienteDropbox.vigilaArbol(donde = 'nube')
+		
 	
 	## Codigo para mover todo el contenido de una vez al dropbox
 	#dic_local = infoArchivosyCarpetas(self.RUTA_BASE_LOCAL,donde = 'local')

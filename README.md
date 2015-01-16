@@ -87,13 +87,8 @@ y a Vaslabs por su [Cliente Dropbox grafico][2]
 
 ### TODO:
 
-* Cuando se borran muchos archivos locales a la vez solo se borran unos pocos 
-en Dropbox
-* Cuando se suben muchos archivos locales al Dropbox falta informacion mostrada
-por el cliente para saber lo que esta pasando
-* Cuando se ha borrado un elemento en dropbox estando la Rasp apagada, 
-al encenderla si descarga los nuevos elementos, 
-pero no borra del local el elemento borrado en dropbox
 * Hay problemas cuando creo una carpeta en remoto con tildes en su nombre
+* Quizas relacionado con lo anterior, no se sincronizan los archivos ocultos cuyo
+nombre empieza por punto
 * Implementar un limitador de la cantidad de subidas y bajadas
 * Gestion de errores
