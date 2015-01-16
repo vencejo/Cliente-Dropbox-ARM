@@ -106,33 +106,39 @@ class ClienteDropbox():
 
 	def vigilaArbol(self,donde = 'local'):
 		""" Se encarga de ir vigilando el arbol de carpetas , remoto o local
-		y si hay cambios actualiza su arbol gemelo, el local o el remoto """
+		y si hay cambios respecto a su estructura cuya info se guardo como .json, 
+		actualiza su arbol gemelo, el local o el remoto, y guarda las nuevas 
+		informaciones de estructuras , del local y el remoto, en sendos .json """
 		if donde == 'local':
-			datosOriginalesGuardados = self.COPIA_LOCAL_INFO_LOCAL
-			datosNuevosAguardar = self.COPIA_LOCAL_INFO_REMOTA
+			datosDeEsteLadoGuardados = self.COPIA_LOCAL_INFO_LOCAL
+			datosDelOtroLadoAguardar = self.COPIA_LOCAL_INFO_REMOTA
 			rutaBase = self.RUTA_BASE_LOCAL
 			laOtraRutaBase = self.RUTA_BASE_REMOTA
 		else: #donde=='nube'
-			datosOriginalesGuardados = self.COPIA_LOCAL_INFO_REMOTA
-			datosNuevosAguardar = self.COPIA_LOCAL_INFO_LOCAL
+			datosDeEsteLadoGuardados = self.COPIA_LOCAL_INFO_REMOTA
+			datosDelOtroLadoAguardar = self.COPIA_LOCAL_INFO_LOCAL
 			rutaBase = self.RUTA_BASE_REMOTA
 			laOtraRutaBase = self.RUTA_BASE_LOCAL
 			
-		datosOriginales = self.cargaInfoArchivos(datosOriginalesGuardados) 
+		datosGuardados = self.cargaInfoArchivos(datosDeEsteLadoGuardados) 
 		datosNuevos = self.infoArchivosyCarpetas(rutaBase,donde) 
-		print ""
-		print datosNuevos
-		print ""
-		print datosOriginales
-		print ""
-		df = DictDiff(datosNuevos, datosOriginales) 
+	
+		df = DictDiff(datosNuevos, datosGuardados) 
 		
 		if len(df.borrados()) > 0 or len(df.nuevos()) > 0 or len(df.cambiados()) > 0 :
-			elOtroDirectorio = 'nube' if donde == 'local' else 'local'
-			self.actualiza(df, elOtroDirectorio)
-			dic = self.infoArchivosyCarpetas(laOtraRutaBase, elOtroDirectorio  )
-			self.guardaInfoArchivos(dic, datosNuevosAguardar)
-			self.guardaInfoArchivos(datosNuevos, datosOriginalesGuardados)
+			elOtroLado = 'nube' if donde == 'local' else 'local'
+			self.actualiza(df, elOtroLado)
+			dic = self.infoArchivosyCarpetas(laOtraRutaBase, elOtroLado  )
+			self.guardaInfoArchivos(dic, datosDelOtroLadoAguardar)
+			self.guardaInfoArchivos(datosNuevos, datosDeEsteLadoGuardados)
+			# El problema cuando hay un gran numero de carpetas a mover de un lado a otro
+			# es que algunas se quedan por el camino y no llegan a su destino, con lo que 
+			# el diccionario "datosNuevos" no refleja en realidad los (menos) datos que han llegado
+			# sino los (mas) que habia en el origen
+			# Hay que hacer una funcion que compare diccionarios de origen y destino y
+			# devuelva la diferencia
+			# Quizas para esto nos sirvan las herramientas de comparacion que tenemos 
+			# quitandole solo el tema de los tiempos
 			self.imprimeInfo(df)
 							
 		# Para facilitar el trabajo al recolector de basura
@@ -184,6 +190,7 @@ class ClienteDropbox():
 		if donde == 'local':
 			try:
 				rutaLocal = self.preparaRuta(ruta, donde = 'local')
+				#logging.info('\nIntentando crear archivo en {}\n'.format(rutaLocal))
 				self.dropbox.get(self.RUTA_BASE_REMOTA + ruta,rutaLocal)
 				logging.info('\nCreado archivo en {}\n'.format(rutaLocal))
 			except Exception, e:

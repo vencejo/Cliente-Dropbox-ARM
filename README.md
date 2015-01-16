@@ -87,6 +87,10 @@ y a Vaslabs por su [Cliente Dropbox grafico][2]
 
 ### TODO:
 
+* Hay problemas cuando se van a sincronizar muchas carpetas y archivos a la vez
+, muchas se quedan por el camino, el algoritmo esta preparado para hacerlo todo de 
+una vez, pero la web y la api de Dropbox no funciona asi, y hay que tener en cuenta la 
+latencia y la perdida de archivos por el camino
 * Hay problemas cuando creo una carpeta en remoto con tildes en su nombre
 * Quizas relacionado con lo anterior, no se sincronizan los archivos ocultos cuyo
 nombre empieza por punto
