@@ -51,15 +51,14 @@ carpetas locales guiandose por la info remota y se toma la info remota como cach
 5. Por una parte el programa vigila los cambios de las carpetas locales y si se produce
 alguno procede a actualizar su cache local y a subir el archivo/carpeta
 
-6. Por otra parte el programa tambien vigila los cambios en una carpeta remota
-(solo en una, porque vigilar todo el directorio remoto seria demasiado lento)
-y si se produce algun cambio procede a actualizar la copia local de esta carpeta,
+6. Por otra parte el programa tambien vigila los cambios en las carpetas remotas
+y si se produce algun cambio procede a actualizar la copia local de estas carpetas,
 actulizando a su vez la cache local
 
 ### Implementacion:
 
 La informacion sobre el arbol de carpetas y archivos , tambien denominado cache, 
-se guarda en forma de archivo json con estructura recursiva del tipo siguiente
+se guarda en forma de archivos json con estructura recursiva del tipo siguiente
 
 ~~~
 		d = {'ruta':'/',
@@ -70,6 +69,20 @@ se guarda en forma de archivo json con estructura recursiva del tipo siguiente
 			 'tiempo': 10000000,
 			 'tipo': 'directorio'} 
 ~~~
+
+Se guardan dos archivos de este tipo : COPIA_LOCAL_INFO_LOCAL ,COPIA_LOCAL_INFO_REMOTA , donde
+estaran las informaciones de la estructura de archivos local y remota respectivamente.
+
+El proceso de sincronizacion se compone de dos fases, una en la que mirando la estructura
+remota , se compara con info de COPIA_LOCAL_INFO_REMOTA , y si hay discrepancias se procede
+a la descarga de archivos hacia el local y a la actualizacion de COPIA_LOCAL_INFO_REMOTA y
+de COPIA_LOCAL_INFO_LOCAL con  la nueva estructura creada.
+
+Y la otra fase en   la que mirando la estructura local , se compara con info de 
+COPIA_LOCAL_INFO_LOCAL , y si hay discrepancias se procede
+a la subida de archivos hacia la nube y a la actualizacion de COPIA_LOCAL_INFO_LOCAL y
+COPIA_LOCAL_INFO_REMOTA con  la nueva estructura creada.
+
          
 ### Inspiraciones y agradecimientos:
 
@@ -87,10 +100,6 @@ y a Vaslabs por su [Cliente Dropbox grafico][2]
 
 ### TODO:
 
-* Hay problemas cuando se van a sincronizar muchas carpetas y archivos a la vez
-, muchas se quedan por el camino, el algoritmo esta preparado para hacerlo todo de 
-una vez, pero la web y la api de Dropbox no funciona asi, y hay que tener en cuenta la 
-latencia y la perdida de archivos por el camino
 * Hay problemas cuando creo una carpeta en remoto con tildes en su nombre
 * Quizas relacionado con lo anterior, no se sincronizan los archivos ocultos cuyo
 nombre empieza por punto

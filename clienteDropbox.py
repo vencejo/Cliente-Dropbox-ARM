@@ -104,11 +104,32 @@ class ClienteDropbox():
 			info = json.load( archivo)
 		return info
 
-	def vigilaArbol(self,donde = 'local'):
-		""" Se encarga de ir vigilando el arbol de carpetas , remoto o local
-		y si hay cambios respecto a su estructura cuya info se guardo como .json, 
-		actualiza su arbol gemelo, el local o el remoto, y guarda las nuevas 
-		informaciones de estructuras , del local y el remoto, en sendos .json """
+	def sincroniza(self,donde = 'local'):
+		"""		
+		El proceso de sincronizacion se compone de dos fases, una en la que mirando la estructura
+		remota , se compara con info de COPIA_LOCAL_INFO_REMOTA , y si hay discrepancias se procede
+		a la descarga de archivos hacia el local y a la actualizacion de COPIA_LOCAL_INFO_REMOTA y
+		de COPIA_LOCAL_INFO_LOCAL con  la nueva estructura creada.
+
+		Y la otra fase en   la que mirando la estructura local , se compara con info de 
+		COPIA_LOCAL_INFO_LOCAL , y si hay discrepancias se procede
+		a la subida de archivos hacia la nube y a la actualizacion de COPIA_LOCAL_INFO_LOCAL y
+		COPIA_LOCAL_INFO_REMOTA con  la nueva estructura creada.
+
+		Ejemplo de ejecucion:
+		1- Comparo la estructura de la Nube con la Informacion de la Nube guardada en .json
+			y guardo la info de la nueva estructura en el .json
+		2. Si hay discrepancias, traspaso los archivos de la Nube al Local
+			(Si hay muchos archivos a traspasar lo mas seguro es que, 
+			por la propia latencia de la red, no se traspasen todos de una sola vez)
+		3. Debido a las pegas del anterior punto, tenemos que montar un ciclo donde
+			comparamos la informacion de la nube con la estructura Local
+		4. Mientras halla discrepancias sigo traspasando archivos de la nube a local
+		5. Guardo la nueva informacion de la estructura local en su .json correspondiente
+		6. Repito los pasos del 1 al 5 , pero ahora cambiando los papeles de nube por local
+			y viceversa, pero esto se hara en una nueva llamada a la funcion con el argumento
+			'local'.
+		"""
 		if donde == 'local':
 			datosDeEsteLadoGuardados = self.COPIA_LOCAL_INFO_LOCAL
 			datosDelOtroLadoAguardar = self.COPIA_LOCAL_INFO_REMOTA
@@ -119,32 +140,39 @@ class ClienteDropbox():
 			datosDelOtroLadoAguardar = self.COPIA_LOCAL_INFO_LOCAL
 			rutaBase = self.RUTA_BASE_REMOTA
 			laOtraRutaBase = self.RUTA_BASE_LOCAL
-			
+		
+		# 1	
 		datosGuardados = self.cargaInfoArchivos(datosDeEsteLadoGuardados) 
 		datosNuevos = self.infoArchivosyCarpetas(rutaBase,donde) 
-	
+		self.guardaInfoArchivos(datosNuevos, datosDeEsteLadoGuardados)
 		df = DictDiff(datosNuevos, datosGuardados) 
 		
+		# 2
 		if len(df.borrados()) > 0 or len(df.nuevos()) > 0 or len(df.cambiados()) > 0 :
+			
 			elOtroLado = 'nube' if donde == 'local' else 'local'
 			self.actualiza(df, elOtroLado)
-			dic = self.infoArchivosyCarpetas(laOtraRutaBase, elOtroLado  )
-			self.guardaInfoArchivos(dic, datosDelOtroLadoAguardar)
-			self.guardaInfoArchivos(datosNuevos, datosDeEsteLadoGuardados)
-			# El problema cuando hay un gran numero de carpetas a mover de un lado a otro
-			# es que algunas se quedan por el camino y no llegan a su destino, con lo que 
-			# el diccionario "datosNuevos" no refleja en realidad los (menos) datos que han llegado
-			# sino los (mas) que habia en el origen
-			# Hay que hacer una funcion que compare diccionarios de origen y destino y
-			# devuelva la diferencia
-			# Quizas para esto nos sirvan las herramientas de comparacion que tenemos 
-			# quitandole solo el tema de los tiempos
+			
+			# 3 y 4
+			datosDelOtroLado = self.infoArchivosyCarpetas(laOtraRutaBase, elOtroLado  )
+			df = DictDiff(datosNuevos, datosDelOtroLado) 
 			self.imprimeInfo(df)
-							
+			while len(df.borrados()) > 0 or len(df.nuevos()) > 0 :
+				self.imprimeInfo(df)
+				self.actualiza(df, elOtroLado)
+				datosDelOtroLado = self.infoArchivosyCarpetas(laOtraRutaBase, elOtroLado  )
+				df = DictDiff(datosNuevos, datosDelOtroLado)
+				self.imprimeInfo(df)
+			# 5
+			datosDelOtroLado = self.infoArchivosyCarpetas(laOtraRutaBase, elOtroLado  )
+			self.guardaInfoArchivos(datosDelOtroLado, datosDelOtroLadoAguardar)
+			
+										
 		# Para facilitar el trabajo al recolector de basura
 		# borro objetos innecesarios que podrian llenar la memoria
 		del df
 		
+			
 	def imprimeInfo(self,df):
 		""" Imprime la info del df """
 		print ""
@@ -157,6 +185,7 @@ class ClienteDropbox():
 		
 		logging.info('\nborrados: {0}  \nnuevos: {1}  \ncambiados:{2}\n'.format( \
 						str(df.borrados()),str(df.nuevos()),str(df.cambiados())))
+	
 		
 	def actualiza(self, df, donde = 'local'):
 		""" Actualiza el contenido del directorio local o remoto segun los valores del 
@@ -311,7 +340,9 @@ class ClienteDropbox():
 					
 		except Exception, e:
 			print e
+	
 
+		
 if __name__ == "__main__":
 	
 	clienteDropbox = ClienteDropbox()
@@ -320,30 +351,18 @@ if __name__ == "__main__":
 		print "Primera ejecucion del cliente ... descargando informacion remota "
 		logging.info("\nPrimera ejecucion del cliente ... descargando informacion remota \n")
 		dic_remoto = clienteDropbox.infoArchivosyCarpetas(clienteDropbox.RUTA_BASE_REMOTA,donde = 'nube')
-		clienteDropbox.guardaInfoArchivos(dic_remoto, clienteDropbox.COPIA_LOCAL_INFO_LOCAL)
 		clienteDropbox.guardaInfoArchivos(dic_remoto, clienteDropbox.COPIA_LOCAL_INFO_REMOTA)
-		clienteDropbox.mueveTodoHacia(dic_remoto, donde='local')
-	
+		clienteDropbox.mueveTodoHacia( dic_remoto, donde='local')
+		dic_local = clienteDropbox.infoArchivosyCarpetas(clienteDropbox.RUTA_BASE_LOCAL,donde = 'local')
+		clienteDropbox.guardaInfoArchivos(dic_local, clienteDropbox.COPIA_LOCAL_INFO_LOCAL)
+			
 	### Paso 1, 2 y 3: Se hacen cada vez que se arranca la maquina.
 	### Escaneo de la estructura de archivos remota y comparacion con la
 	### 	copia de la misma guardada en local, si son distintas , descargar los nuevos archivos
 	print "Escaneando directorio remoto buscando nuevos elementos ..."
 	logging.info("\nArrancando cliente ...Escaneando directorio remoto buscando nuevos elementos ... \n")
-	dic_remoto = clienteDropbox. infoArchivosyCarpetas(clienteDropbox.RUTA_BASE_REMOTA, donde = 'nube')
-	dic_CopiaLocal_remoto = clienteDropbox.cargaInfoArchivos(clienteDropbox.COPIA_LOCAL_INFO_REMOTA)
-	
-	df = DictDiff( dic_remoto, dic_CopiaLocal_remoto)
-	clienteDropbox.actualiza(df, donde='local')
-	clienteDropbox.imprimeInfo(df)
-	del df	# Para facilitar el trabajo al recolector de basura
-
-	# Despues de actualizar el sistema local , volvemos a mirar su estrutura y a guardarla
-	dic_local = clienteDropbox.infoArchivosyCarpetas(clienteDropbox.RUTA_BASE_LOCAL )
-	clienteDropbox.guardaInfoArchivos(dic_local, clienteDropbox.COPIA_LOCAL_INFO_LOCAL)
-	
-	# Guardo una copia local de la info remota de la que ya se tiene replica en local
-	clienteDropbox.guardaInfoArchivos(dic_remoto, clienteDropbox.COPIA_LOCAL_INFO_REMOTA)
-	
+	clienteDropbox.sincroniza(donde = 'nube')
+		
 	### Paso 4- Se entra en un ciclo de doble vigilancia:
 	#4.1- Por una parte el programa vigila los cambios de las carpetas locales y si se produce
 	#alguno procede a actualizar su cache local y a subir el archivo/carpeta
@@ -352,15 +371,12 @@ if __name__ == "__main__":
 	
 	while True:
 		print "Vigilando directorios locales ..."
-		clienteDropbox.vigilaArbol(donde = 'local')
+		clienteDropbox.sincroniza(donde = 'local')
 		print "Vigilando directorios remotos ..."
-		clienteDropbox.vigilaArbol(donde = 'nube')
+		clienteDropbox.sincroniza(donde = 'nube')
 		
-	
-	## Codigo para mover todo el contenido de una vez al dropbox
-	#dic_local = infoArchivosyCarpetas(self.RUTA_BASE_LOCAL,donde = 'local')
-	#mueveTodoHacia(dic_local, donde='nube')
-	
+		
+
 		
 
 
